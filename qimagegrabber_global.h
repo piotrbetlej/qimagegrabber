@@ -1,0 +1,12 @@
+#ifndef GETIMAGE_GLOBAL_H
+#define GETIMAGE_GLOBAL_H
+
+#include <QtCore/qglobal.h>
+
+#if defined(QIMAGEGRABBER_LIBRARY)
+#  define QIMAGEGRABBERSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define QIMAGEGRABBERSHARED_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // GETIMAGE_GLOBAL_H
