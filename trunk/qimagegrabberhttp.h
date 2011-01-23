@@ -1,0 +1,1 @@
+/home/mm/Projektek/magyarokamarson2010/mars2020/libs/qimagegrabber/qimagegrabberhttp.h
