@@ -23,10 +23,11 @@ private:
     Ui::DialogQImageGrabberSettings *ui;
     QImageGrabber *grabber;
     QCompleter *sourceCompleter;
+public slots:
+    void on_pushButtonStart_clicked();
 
 private slots:
     void on_pushButtonMore_clicked();
-    void on_pushButtonStart_clicked();
     void grabberStateChanged(QImageGrabber::GrabbingState state);
     void grabberErrorHappend();
     void on_checkBoxNoLimit_toggled(bool checked);

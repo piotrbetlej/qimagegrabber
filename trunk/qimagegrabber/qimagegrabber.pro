@@ -39,6 +39,7 @@ SOURCES += qimagegrabberv4l2.cpp
 }
 
 win32 {
+# vfw is not yet implemented
 #HEADERS += qimagegrabbervfw.h
 #SOURCES += qimagegrabbervfw.cpp
 #QT += gui

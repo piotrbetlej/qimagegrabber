@@ -1,6 +1,6 @@
-#include "imagegrabbervfw.h"
+#include "qimagegrabbervfw.h"
 
-ImageGrabberVfw::ImageGrabberVfw(QObject *parent)
+QImageGrabberVfw::QImageGrabberVfw(QObject *parent)
     : ImageGrabber(parent)
 {
     grabbing = false;
@@ -10,12 +10,12 @@ ImageGrabberVfw::ImageGrabberVfw(QObject *parent)
     enumerateSources();
 }
 
-void ImageGrabberVfw::sendRequest()
+void QImageGrabberVfw::sendRequest()
 {
     openDevice(0);
 }
 
-void ImageGrabberVfw::setSource(QString str)
+void QImageGrabberVfw::setSource(QString str)
 {
     int index = devices.indexOf(str);
     if (index != -1) {
@@ -32,7 +32,7 @@ void ImageGrabberVfw::setSource(QString str)
    Description: Inititlizes the object for using VFW interface to capture
                 device.
 *******************************************************************************/
-void ImageGrabberVfw::enumerateSources()
+void QImageGrabberVfw::enumerateSources()
 {
     for (int i = 0; i < MAX_VFW_DEVICES; i++) {
         WCHAR szDeviceName[80];
@@ -56,7 +56,7 @@ void ImageGrabberVfw::enumerateSources()
    Return     : none
    Description: Closes up the interface for VFW of capture device.
 *******************************************************************************/
-void ImageGrabberVfw::stopGrabbing()
+void QImageGrabberVfw::stopGrabbing()
 {
     if (isGrabbing()) {       
 
@@ -70,7 +70,7 @@ void ImageGrabberVfw::stopGrabbing()
    Return     : true Success, false Failed.
    Description: Sets curretn capture driver.
 *******************************************************************************/
-bool ImageGrabberVfw::openDevice(int index)
+bool QImageGrabberVfw::openDevice(int index)
 {
     try {
         if (!(index < devices.size())) {
@@ -173,13 +173,13 @@ bool ImageGrabberVfw::openDevice(int index)
 //
 // Internal callback functions.
 //
-void ImageGrabberVfw::ErrorCallbackProc(HWND hWnd, int nErrID, LPSTR lpErrorText)
+void QImageGrabberVfw::ErrorCallbackProc(HWND hWnd, int nErrID, LPSTR lpErrorText)
 {
     qWarning() << "err" << nErrID << lpErrorText;
 }
 
 
-void ImageGrabberVfw::StatusCallbackProc(HWND hWnd, int nID, LPCSTR lpsz)
+void QImageGrabberVfw::StatusCallbackProc(HWND hWnd, int nID, LPCSTR lpsz)
 {
 
     /*switch(nID)
@@ -193,7 +193,7 @@ void ImageGrabberVfw::StatusCallbackProc(HWND hWnd, int nID, LPCSTR lpsz)
     qWarning() << "status " << nID;
 }
 
-void ImageGrabberVfw::videoFrameCallback(HWND hWnd, LPVIDEOHDR lpVHdr)
+void QImageGrabberVfw::videoFrameCallback(HWND hWnd, LPVIDEOHDR lpVHdr)
 {
     qWarning() << "New image";
     /*if (!currentImage->loadFromData(lpVHdr->lpData, lpVHdr->dwBytesUsed, "BMP")) {
@@ -201,7 +201,7 @@ void ImageGrabberVfw::videoFrameCallback(HWND hWnd, LPVIDEOHDR lpVHdr)
     }*/
 }
 
-void ImageGrabberVfw::closeDevice()
+void QImageGrabberVfw::closeDevice()
 {
     if (m_hWndVideo != NULL) {
         capDriverDisconnect(m_hWndVideo);
@@ -210,7 +210,7 @@ void ImageGrabberVfw::closeDevice()
     m_hWndVideo=NULL;
 }
 
-void ImageGrabberVfw::setImageSize(QSize size)
+void QImageGrabberVfw::setImageSize(QSize size)
 {
     m_height = size.height();
     m_width = size.width();
