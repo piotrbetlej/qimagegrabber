@@ -128,6 +128,7 @@ void QImageGrabberHttp::requestNewImage()
     if ((currentState == GrabbingOn) || (currentState == GrabbingTurnOn)) {
         request->setUrl(currentUrl);
         requestTime = QTime::currentTime();
+        if (reply) reply->deleteLater();
         reply = downloadManager->get(*request);
         connect(reply , SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(downloadErrorSlot(QNetworkReply::NetworkError)));
     }

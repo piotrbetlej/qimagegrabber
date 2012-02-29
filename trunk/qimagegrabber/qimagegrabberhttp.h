@@ -22,6 +22,7 @@ public:
     bool isGrabbing();
     void setFps(double framePerSec);
     void setSource(QString str);
+    QString currentSource() {return currentUrl.toString();}
 
     QStringList enumerateSources() {return QStringList();}
     QString getDefaultSource() {return "http://127.0.0.1:8080/?action=snapshot";}

@@ -1,5 +1,6 @@
 #include "qimagegrabbermjpeg.h"
 
+
 QImageGrabberMjpeg::QImageGrabberMjpeg(QObject *parent)
     : QImageGrabber(parent)
 {
@@ -12,6 +13,15 @@ QImageGrabberMjpeg::QImageGrabberMjpeg(QObject *parent)
     QImageGrabberParameter boundaryParam;
     boundaryParam.name = tr("Boundary");
     boundaryParam.value = "boundarydonotcross";
+    m_parameters.append(boundaryParam);
+
+    QImageGrabberParameter timeStampParameter;
+    timeStampParameter.name = "Frame timestamp";
+    timeStampParameter.value = -1;
+    timeStampParameter.flags |= QImageGrabberParameter::ReadOnly;
+    m_parameters.append(timeStampParameter);
+
+    m_timestampRegexp.setPattern("X-Timestamp: (\\d+).(\\d+)\\r\\n");
 }
 
 bool QImageGrabberMjpeg::isGrabbing()
@@ -74,6 +84,7 @@ void QImageGrabberMjpeg::sendRequest()
     currentImageSize = 0;
     imageBuffer->seek(0);
     requestTime = QTime::currentTime();
+    emit stateChanged(GrabbingError);
 }
 
 void QImageGrabberMjpeg::replyDataAvailable()
@@ -112,7 +123,6 @@ void QImageGrabberMjpeg::replyDataAvailable()
             if (streamType == StreamTypeWebcamXP) {
                 if (reply->bytesAvailable() >= 50) {
                     QByteArray borderArray = reply->read(51);
-                    qWarning() << borderArray;
                     if (!borderArray.startsWith("mjpeg")) {
                         qWarning() << "invalid border" << borderArray;
                         return;
@@ -145,7 +155,12 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             return;
                         }
                     } else if (cLine.startsWith("X-Timestamp:")) {
-                        // FIXME read timestamp;
+                        if (m_timestampRegexp.indexIn(cLine) > -1) {
+                            m_timestampInMs =
+                                    m_timestampRegexp.cap(1).toLong() * 1000 +
+                                    m_timestampRegexp.cap(2).toLong();
+                        }
+                        qWarning() << cLine << m_timestampInMs;
                         mjpgState = MjpgJpg;
                         quitNext = true;
                     }
@@ -157,15 +172,20 @@ void QImageGrabberMjpeg::replyDataAvailable()
     if (mjpgState == MjpgJpg) {
         imageBuffer->write(reply->read(currentImageSize - imageBuffer->pos()));
         if (imageBuffer->pos() == currentImageSize) {
+            bool ok = false;
             imageReader->setDevice(imageBuffer);
             imageBuffer->seek(0);
-            imageReader->read(currentImage);
+            ok = imageReader->read(currentImage);
             imageBuffer->seek(0);
-
-            emit newImageGrabbed(currentImage);
-            calcFPS(requestTime.msecsTo(QTime::currentTime()));
-            requestTime = QTime::currentTime();
+            if (ok == true) {
+                emit newImageGrabbed(currentImage);
+                calcFPS(requestTime.msecsTo(QTime::currentTime()));
+                requestTime = QTime::currentTime();
+            } else {
+                qWarning() << "Image read fail" << imageReader->errorString();
+            }
             mjpgState = MjpgBoundary;
+            qWarning() << "image read done";
         }
     }
 
