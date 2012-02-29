@@ -20,12 +20,13 @@ public:
     enum ParameterFlag {
          NoFlags = 0x0,
          ReadOnly = 0x1,
-         WriteOnly = 0x2,
+         WriteOnly = 0x2
      };
     Q_DECLARE_FLAGS(ParameterFlags, ParameterFlag)
 
     QString name;
     QVariant value;
+    ParameterFlags flags;
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(QImageGrabberParameter::ParameterFlags)
 
@@ -39,7 +40,16 @@ public:
         GrabbingTurnOn,
         GrabbingOn,
         GrabbingTurnOff,
-        GrabbingError,
+        GrabbingError
+    };
+
+    enum GrabberType {
+        SrcTypeStillJpg,
+        SrcTypeWebcamXpMjpg,
+        SrcTypeJpgFromUrl,
+        SrcTypeJpgsFromDir,
+        SrcTypeMjpegStreamerMjpg ,
+       SrcTypeV4LDevice
     };
 
 
@@ -57,9 +67,9 @@ public:
     double getFps() const {return fps;}
 
     virtual void setSource(QString str) = 0;
-    QString getSource() const {return source;}
+    virtual QString currentSource() = 0;
 
-    QList<QImageGrabberParameter> getParameterList() const {return parameters;}
+    QList<QImageGrabberParameter> getParameterList() const {return m_parameters;}
     bool setParameter(QString name, QVariant value);
     QVariant getParameter(QString name);
 
@@ -73,25 +83,25 @@ protected:
     QBuffer *imageBuffer;
     QImageReader *imageReader;
     QImage *currentImage;
-    double fps;
     QString source;
     GrabbingState currentState;
 
     void setError(QString str);
 
+    double fps;
     quint16 delays[FPS_ARRAY_SIZE];
     int currentDelayPointer;
     bool hasFPSBufferFilled;
     quint64 sum;
+    QTime requestTime;
 
     void calcFPS(quint16 newDelay);
 
-    QList<QImageGrabberParameter> parameters;
+    QList<QImageGrabberParameter> m_parameters;
 
     bool enumeratorSupported;
 
     QTimer newImageTimer;
-    QTime requestTime;
 
 signals:
     void newImageGrabbed(QImage *img);

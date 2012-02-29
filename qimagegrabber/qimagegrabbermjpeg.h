@@ -7,6 +7,7 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
+#include <QRegExp>
 
 
 class QImageGrabber;
@@ -17,13 +18,13 @@ class QIMAGEGRABBERSHARED_EXPORT QImageGrabberMjpeg : public QImageGrabber
 
     typedef  enum {
         MjpgBoundary,
-        MjpgJpg,
+        MjpgJpg
     } MjpgState;
 
     typedef enum {
         StreamTypeUnknown,
         StreamTypeWebcamXP,
-        StreamTypeMjpgStreamer,
+        StreamTypeMjpgStreamer
     } StreamType;
 public:
     QImageGrabberMjpeg(QObject *parent = 0);
@@ -36,8 +37,9 @@ public:
 
     QString grabberName() {return "HTTP mjpg image grabber";}
 
-    void setFps(double ) {qWarning() << "Not supported option";}
+    void setFps(double ) {}
     void setSource(QString str);
+    QString currentSource() {return currentUrl.toString();}
     QStringList enumerateSources() {return QStringList();}
 
 private:
@@ -53,6 +55,9 @@ private:
     StreamType streamType;
 
     int currentImageSize;
+
+    quint64 m_timestampInMs;
+    QRegExp m_timestampRegexp;
 
 public slots:
 

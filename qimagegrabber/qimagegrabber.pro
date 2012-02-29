@@ -12,7 +12,7 @@ TEMPLATE = lib
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
-DESTDIR = ../bin
+DESTDIR = ../../bin
 CONFIG     += dll
 
 DEFINES += QIMAGEGRABBER_LIBRARY
@@ -39,11 +39,11 @@ SOURCES += qimagegrabberv4l2.cpp
 }
 
 win32 {
-HEADERS += qimagegrabbervfw.h
-SOURCES += qimagegrabbervfw.cpp
-QT += gui
-LIBS += -L../bin/win32 \
-        -lvfw32
+#HEADERS += qimagegrabbervfw.h
+#SOURCES += qimagegrabbervfw.cpp
+#QT += gui
+#LIBS += -L../bin/win32 \
+#        -lvfw32
 }
 
 FORMS += \

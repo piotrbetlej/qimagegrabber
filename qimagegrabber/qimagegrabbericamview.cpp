@@ -25,6 +25,9 @@ void QImageGrabberIcamView::socketStateChanged(QAbstractSocket::SocketState newS
         //sendLogin();
         qWarning() << "connected";
         break;
+    default:
+        qWarning() << "statechanged";
+        break;
     }
 }
 

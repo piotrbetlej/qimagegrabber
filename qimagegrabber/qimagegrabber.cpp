@@ -1,19 +1,19 @@
 #include "qimagegrabber.h"
 
 QImageGrabber::QImageGrabber(QObject *parent) :
-    QObject(parent), hasFPSBufferFilled(false)
+    QObject(parent), hasFPSBufferFilled(false), enumeratorSupported(false)
 {
-    fps = 0;
     imageReader = new QImageReader();
-    imageReader->setAutoDetectImageFormat(false);
-    imageReader->setFormat("JPG");
+    imageReader->setAutoDetectImageFormat(true);
+    //imageReader->setFormat("JPG");
 
     currentImage = new QImage(640, 480, QImage::Format_RGB888);
     imageBuffer = new QBuffer(this);
     imageBuffer->open(QBuffer::ReadWrite);
     imageReader->setDevice(imageBuffer);
-    fps = 0;
     currentState = GrabbingOff;
+
+    fps = 0;
     currentDelayPointer = 0;
     sum = 0;
     for (int i = 0; i<FPS_ARRAY_SIZE; i++) {

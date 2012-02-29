@@ -32,7 +32,7 @@ public:
     void stopGrabbing(){}
 
     void setFps(double framePerSec) {fps = framePerSec;}
-    void setSource(QString str) {}
+    void setSource(QString ) {}
 
     void sendImageRequest();
     void save();

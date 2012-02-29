@@ -23,7 +23,6 @@ private:
     Ui::DialogQImageGrabberSettings *ui;
     QImageGrabber *grabber;
     QCompleter *sourceCompleter;
-    QGridLayout *propertiesLayout;
 
 private slots:
     void on_pushButtonMore_clicked();
