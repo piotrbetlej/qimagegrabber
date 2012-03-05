@@ -80,7 +80,7 @@ void DialogQImageGrabberSettings::setImageGrabber(QImageGrabber *gb)
         rowCount++;
     }
 
-    valueWidget = adjustSize();
+    this->adjustSize();
 }
 
 void DialogQImageGrabberSettings::on_checkBoxNoLimit_toggled(bool checked)
