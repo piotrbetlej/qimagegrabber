@@ -74,7 +74,6 @@ void QImageGrabberMjpeg::downloadErrorSlot(QNetworkReply::NetworkError )
 
 void QImageGrabberMjpeg::sendRequest()
 {
-    qWarning() << currentUrl;
     request->setUrl(currentUrl);
     reply = downloadManager->get(*request);
     connect(reply , SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(downloadErrorSlot(QNetworkReply::NetworkError)));
@@ -98,7 +97,6 @@ void QImageGrabberMjpeg::replyDataAvailable()
         if (streamType == StreamTypeUnknown) {
             if (reply->bytesAvailable() >= 50) {
                 cLine = reply->readLine(51);
-                qWarning() << cLine;
                 if (cLine.startsWith("mjpeg")) {
                     streamType = StreamTypeWebcamXP;
                     bool ok = false;
@@ -137,7 +135,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             qWarning() << QString("Could not convert %1 to number").arg(QString(borderArray.mid(5,7)));
                         }
                     }
-                } else {  // to few bytes came so return the next readyíread will take us further
+                } else {  // too few bytes came so return the next readyíread will take us further
                     return;
                 }
             } else if(streamType == StreamTypeMjpgStreamer) {
@@ -149,7 +147,6 @@ void QImageGrabberMjpeg::replyDataAvailable()
                     if (cLine.startsWith("Content-Length:")) {
                         bool ok = false;
                         currentImageSize = cLine.mid(16).toInt(&ok);
-                        qWarning() << currentImageSize;
                         if (!ok) {
                             qWarning() << QString("Could not convert %1 to number").arg(cLine.mid(16));
                             return;
@@ -160,7 +157,6 @@ void QImageGrabberMjpeg::replyDataAvailable()
                                     m_timestampRegexp.cap(1).toLong() * 1000 +
                                     m_timestampRegexp.cap(2).toLong();
                         }
-                        qWarning() << cLine << m_timestampInMs;
                         mjpgState = MjpgJpg;
                         quitNext = true;
                     }
@@ -185,14 +181,8 @@ void QImageGrabberMjpeg::replyDataAvailable()
                 qWarning() << "Image read fail" << imageReader->errorString();
             }
             mjpgState = MjpgBoundary;
-            qWarning() << "image read done";
         }
     }
-
-    /*if (reply->bytesAvailable()) {
-        qWarning() << "LEFT" << reply->bytesAvailable() << "state" << mjpgState;
-        replyDataAvailable();
-    }*/
 }
 
 void QImageGrabberMjpeg::setSource(QString str)
