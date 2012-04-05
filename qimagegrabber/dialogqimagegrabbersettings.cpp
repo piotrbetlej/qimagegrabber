@@ -2,7 +2,7 @@
 #include "ui_dialogqimagegrabbersettings.h"
 
 DialogQImageGrabberSettings::DialogQImageGrabberSettings(QWidget *parent) :
-    QDialog(parent),
+    QDialog(parent, Qt::Window),
     ui(new Ui::DialogQImageGrabberSettings),
     grabber(NULL),
     sourceCompleter(NULL)
@@ -23,10 +23,12 @@ void DialogQImageGrabberSettings::setImageGrabber(QImageGrabber *gb)
     this->setWindowTitle(gb->grabberName());
     ui->lineEditSource->setText(grabber->currentSource());
     ui->spinBoxFPS->setValue(grabber->getFps());
+
     if (grabber->getFps() == 0) {
         ui->spinBoxFPS->setEnabled(false);
         ui->checkBoxNoLimit->setChecked(true);
     }
+
     connect(grabber, SIGNAL(stateChanged(QImageGrabber::GrabbingState)), this ,SLOT(grabberStateChanged(QImageGrabber::GrabbingState)));
     connect(grabber, SIGNAL(errorHappend()), this, SLOT(grabberErrorHappend()));
 
@@ -83,6 +85,13 @@ void DialogQImageGrabberSettings::setImageGrabber(QImageGrabber *gb)
     this->adjustSize();
 }
 
+void DialogQImageGrabberSettings::closeEvent(QCloseEvent *)
+{
+    if (grabber != NULL) {
+        grabber->setSource(ui->lineEditSource->text());
+    }
+}
+
 void DialogQImageGrabberSettings::on_checkBoxNoLimit_toggled(bool checked)
 {
     ui->spinBoxFPS->setEnabled(!checked);
@@ -129,5 +138,6 @@ void DialogQImageGrabberSettings::on_pushButtonMore_clicked()
     ui->pushButtonMore->setText(
             ui->groupBoxProperties->isVisible()?"More":"Hide details");
     ui->groupBoxProperties->setVisible(!ui->groupBoxProperties->isVisible());
-    this->resize(this->minimumSize());
+    adjustSize();
 }
+

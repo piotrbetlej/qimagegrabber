@@ -12,7 +12,7 @@ TEMPLATE = lib
 OBJECTS_DIR = build
 MOC_DIR = build
 UI_DIR = build
-DESTDIR = ../../bin
+DESTDIR = bin
 CONFIG     += dll
 
 DEFINES += QIMAGEGRABBER_LIBRARY

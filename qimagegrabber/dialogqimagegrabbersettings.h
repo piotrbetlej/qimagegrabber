@@ -19,6 +19,8 @@ public:
     ~DialogQImageGrabberSettings();
     void setImageGrabber(QImageGrabber *gb);
 
+protected:
+    void closeEvent(QCloseEvent *);
 private:
     Ui::DialogQImageGrabberSettings *ui;
     QImageGrabber *grabber;
@@ -31,7 +33,6 @@ private slots:
     void grabberStateChanged(QImageGrabber::GrabbingState state);
     void grabberErrorHappend();
     void on_checkBoxNoLimit_toggled(bool checked);
-
 };
 
 #endif // DIALOGIMAGEGRABBERSETTINGS_H
