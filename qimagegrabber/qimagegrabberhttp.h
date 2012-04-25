@@ -14,7 +14,7 @@ class QIMAGEGRABBERSHARED_EXPORT QImageGrabberHttp : public QImageGrabber
     Q_OBJECT
 public:
     QImageGrabberHttp(QObject *parent = 0);
-    QImageGrabberHttp(QUrl url = QUrl("http://127.0.0.1:8080/?action=snapshot"), QObject *patent = 0);
+    QImageGrabberHttp(QUrl url, QObject *patent = 0);
     QString grabberName() {return "HTTP single image grabber";}
     void setUrl(QUrl & url);
     void startGrabbing();
