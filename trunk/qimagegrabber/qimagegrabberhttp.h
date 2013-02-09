@@ -17,7 +17,7 @@ public:
     QImageGrabberHttp(QUrl url, QObject *patent = 0);
     QString grabberName() {return "HTTP single image grabber";}
     void setUrl(QUrl & url);
-    void startGrabbing();
+    bool startGrabbing();
     void stopGrabbing();
     bool isGrabbing();
     void setFps(double framePerSec);

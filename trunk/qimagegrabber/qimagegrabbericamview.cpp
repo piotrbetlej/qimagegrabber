@@ -102,11 +102,12 @@ void QImageGrabberIcamView::socketReadyRead()
     }
 }
 
-void QImageGrabberIcamView::startGrabbing()
+bool QImageGrabberIcamView::startGrabbing()
 {
     if (socket.isOpen()) {
-        sendLogin();
+        return sendLogin();
     }
+    return false;
 }
 
 void QImageGrabberIcamView::debugArray(QByteArray & inArr, bool limit)
@@ -127,7 +128,7 @@ void QImageGrabberIcamView::debugArray(QByteArray & inArr, bool limit)
     qWarning() << "............";
 }
 
-void QImageGrabberIcamView::sendLogin()
+bool QImageGrabberIcamView::sendLogin()
 {
     QByteArray loginArray;
 
@@ -152,8 +153,11 @@ void QImageGrabberIcamView::sendLogin()
     for (int i = 0; i<left; i++) {
         loginArray.append((char)0);
     }
-    socket.write(loginArray);
     firstAfterLogin = true;
+
+    if (socket.write(loginArray) == loginArray.length())
+        return true;
+    return false;
 }
 
 void QImageGrabberIcamView::sendImageRequest()

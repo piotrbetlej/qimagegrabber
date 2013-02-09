@@ -28,7 +28,7 @@ public:
 
     void setCameraNo(int number) {cameraNumber = number;}
 
-    void startGrabbing();
+    bool startGrabbing();
     void stopGrabbing(){}
 
     void setFps(double framePerSec) {fps = framePerSec;}
@@ -49,7 +49,7 @@ private:
 
     int requestId;
 
-    void sendLogin();
+    bool sendLogin();
 
     void debugArray(QByteArray & array, bool limited = false);
     int cameraNumber;

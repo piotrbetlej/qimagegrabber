@@ -48,7 +48,7 @@ void QImageGrabberHttp::setUrl(QUrl &url)
     source = url.toString();
 
     if (!url.isValid()) {
-        errorStr = QString("Invalid URL: %1").arg(url.toString());
+        m_errorStr = QString("Invalid URL: %1").arg(url.toString());
         emit errorHappend();
         this->stopGrabbing();
         return;
@@ -63,16 +63,18 @@ void QImageGrabberHttp::setUrl(QUrl &url)
     }
 }
 
-void QImageGrabberHttp::startGrabbing()
+bool QImageGrabberHttp::startGrabbing()
 {
     if (!this->isGrabbing()) {
         if (currentUrl.isValid()) {
             currentState = GrabbingTurnOn;
             requestNewImage();
+            return true;
         } else {
-            emit errorHappend();
+            return false;
         }
     }
+    return false;
 }
 
 void QImageGrabberHttp::stopGrabbing()
@@ -116,7 +118,7 @@ void QImageGrabberHttp::downloadFinished(QNetworkReply *reply)
 void QImageGrabberHttp::downloadErrorSlot(QNetworkReply::NetworkError )
 {
     if (currentState != GrabbingOff) { // to ignore the Operation cancelled warning
-        errorStr = reply->errorString();
+        m_errorStr = reply->errorString();
         emit errorHappend();
         currentState = GrabbingError;
         emit stateChanged(GrabbingError);

@@ -29,7 +29,7 @@ class QIMAGEGRABBERSHARED_EXPORT QImageGrabberMjpeg : public QImageGrabber
 public:
     QImageGrabberMjpeg(QObject *parent = 0);
     void setUrl(QUrl & url);
-    void startGrabbing();
+    bool startGrabbing();
     void stopGrabbing();
     bool isGrabbing();
 
@@ -39,22 +39,22 @@ public:
 
     void setFps(double ) {}
     void setSource(QString str);
-    QString currentSource() {return currentUrl.toString();}
+    QString currentSource() {return m_currentUrl.toString();}
     QStringList enumerateSources() {return QStringList();}
 
 private:
-    QNetworkAccessManager *downloadManager;
-    QNetworkRequest *request;
-    QNetworkReply *reply;
-    int lastState;
-    QUrl currentUrl;
+    QNetworkAccessManager *m_downloadManager;
+    QNetworkRequest *m_request;
+    QNetworkReply *m_reply;
+    int m_lastState;
+    QUrl m_currentUrl;
 
-    void sendRequest();
+    bool sendRequest();
 
-    MjpgState mjpgState;
-    StreamType streamType;
+    MjpgState m_mjpgState;
+    StreamType m_streamType;
 
-    int currentImageSize;
+    int m_currentImageSize;
 
     quint64 m_timestampInMs;
     QRegExp m_timestampRegexp;
@@ -63,7 +63,7 @@ public slots:
 
 private slots:
     void downloadErrorSlot(QNetworkReply::NetworkError);
-    void downloadFinished(QNetworkReply *reply);
+    void downloadFinished(QNetworkReply *m_reply);
     void replyDataAvailable();
     void newImageTimeOut();
 };

@@ -57,9 +57,9 @@ public:
 
     virtual QString grabberName() = 0;
 
-    QString errorString() const {return errorStr;}
+    QString errorString() const {return m_errorStr;}
 
-    virtual void startGrabbing() = 0;
+    virtual bool startGrabbing() = 0;
     virtual void stopGrabbing() = 0;
     virtual bool isGrabbing() const {return (currentState == GrabbingOn);}
 
@@ -79,7 +79,7 @@ public:
     virtual QString getDefaultSource() = 0;
 
 protected:
-    QString errorStr;
+    QString m_errorStr;
     QBuffer *imageBuffer;
     QImageReader *imageReader;
     QImage *currentImage;

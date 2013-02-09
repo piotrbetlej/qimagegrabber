@@ -4,11 +4,11 @@
 QImageGrabberMjpeg::QImageGrabberMjpeg(QObject *parent)
     : QImageGrabber(parent)
 {
-    downloadManager = new QNetworkAccessManager(this);
-    connect(downloadManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadFinished(QNetworkReply*)));
-    request = new QNetworkRequest();
-    request->setRawHeader("User-Agent", "Mars2020 Imagegrabber LIB");
-    reply = NULL;
+    m_downloadManager = new QNetworkAccessManager(this);
+    connect(m_downloadManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadFinished(QNetworkReply*)));
+    m_request = new QNetworkRequest();
+    m_request->setRawHeader("User-Agent", "Mars2020 Imagegrabber LIB");
+    m_reply = NULL;
 
     QImageGrabberParameter boundaryParam;
     boundaryParam.name = tr("Boundary");
@@ -33,24 +33,24 @@ void QImageGrabberMjpeg::setUrl(QUrl &url)
 {
     if (this->isGrabbing()) {
         this->stopGrabbing();
-        currentUrl = url;
+        m_currentUrl = url;
         this->sendRequest();
     } else {
-        currentUrl = url;
+        m_currentUrl = url;
     }
 }
 
-void QImageGrabberMjpeg::startGrabbing()
+bool QImageGrabberMjpeg::startGrabbing()
 {
-    sendRequest();
+    return sendRequest();
 }
 
 void QImageGrabberMjpeg::stopGrabbing()
 {
     currentState = GrabbingOff;
     emit stateChanged(GrabbingOff);
-    if (reply != NULL) {
-        reply->abort();
+    if (m_reply != NULL) {
+        m_reply->abort();
     }
 }
 
@@ -66,24 +66,31 @@ void QImageGrabberMjpeg::downloadFinished(QNetworkReply *reply)
 
 void QImageGrabberMjpeg::downloadErrorSlot(QNetworkReply::NetworkError )
 {
-    if (reply != NULL) {
-        errorStr = reply->errorString();
+    if (m_reply != NULL) {
+        m_errorStr = m_reply->errorString();
         emit errorHappend();
     }
 }
 
-void QImageGrabberMjpeg::sendRequest()
+bool QImageGrabberMjpeg::sendRequest()
 {
-    request->setUrl(currentUrl);
-    reply = downloadManager->get(*request);
-    connect(reply , SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(downloadErrorSlot(QNetworkReply::NetworkError)));
-    connect(reply, SIGNAL(readyRead()), this, SLOT(replyDataAvailable()));
-    mjpgState = MjpgBoundary;
-    streamType = StreamTypeUnknown;
-    currentImageSize = 0;
-    imageBuffer->seek(0);
-    requestTime = QTime::currentTime();
-    emit stateChanged(GrabbingError);
+    if (m_currentUrl.isValid()) {
+        m_request->setUrl(m_currentUrl);
+
+        m_reply = m_downloadManager->get(*m_request);
+        connect(m_reply , SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(downloadErrorSlot(QNetworkReply::NetworkError)));
+        connect(m_reply, SIGNAL(readyRead()), this, SLOT(replyDataAvailable()));
+
+        m_mjpgState = MjpgBoundary;
+        m_streamType = StreamTypeUnknown;
+        m_currentImageSize = 0;
+        imageBuffer->seek(0);
+        requestTime = QTime::currentTime();
+        emit stateChanged(GrabbingTurnOn);
+        return true;
+    } else {
+        return false;
+    }
 }
 
 void QImageGrabberMjpeg::replyDataAvailable()
@@ -93,44 +100,44 @@ void QImageGrabberMjpeg::replyDataAvailable()
         emit stateChanged(currentState);
     }
     QString cLine;
-    if (mjpgState == MjpgBoundary) {
-        if (streamType == StreamTypeUnknown) {
-            if (reply->bytesAvailable() >= 50) {
-                cLine = reply->readLine(51);
+    if (m_mjpgState == MjpgBoundary) {
+        if (m_streamType == StreamTypeUnknown) {
+            if (m_reply->bytesAvailable() >= 50) {
+                cLine = m_reply->readLine(51);
                 if (cLine.startsWith("mjpeg")) {
-                    streamType = StreamTypeWebcamXP;
+                    m_streamType = StreamTypeWebcamXP;
                     bool ok = false;
-                    currentImageSize = cLine.mid(5,8).toInt(&ok);
+                    m_currentImageSize = cLine.mid(5,8).toInt(&ok);
                     if (ok) {
                         imageBuffer->seek(0);
-                        mjpgState = MjpgJpg;
-                        qWarning() << currentImageSize << "CI" << cLine;
+                        m_mjpgState = MjpgJpg;
+                        qWarning() << m_currentImageSize << "CI" << cLine;
                     } else {
                         qWarning() << QString("Could not convert %1 to number").arg(cLine.mid(5,7));
                     }
                     // we need to seek a bit
                 } else {
-                    streamType = StreamTypeMjpgStreamer;
+                    m_streamType = StreamTypeMjpgStreamer;
                 }
             } else { // to few bytes came so return the next readyíread will take us further
                 return;
             }
         }
 
-        if (mjpgState == MjpgBoundary) {
-            if (streamType == StreamTypeWebcamXP) {
-                if (reply->bytesAvailable() >= 50) {
-                    QByteArray borderArray = reply->read(51);
+        if (m_mjpgState == MjpgBoundary) {
+            if (m_streamType == StreamTypeWebcamXP) {
+                if (m_reply->bytesAvailable() >= 50) {
+                    QByteArray borderArray = m_reply->read(51);
                     if (!borderArray.startsWith("mjpeg")) {
                         qWarning() << "invalid border" << borderArray;
                         return;
                     } else {
                         bool ok = false;
-                        currentImageSize = borderArray.mid(5,8).toInt(&ok);
+                        m_currentImageSize = borderArray.mid(5,8).toInt(&ok);
                         if (ok) {
                             imageBuffer->seek(0);
-                            mjpgState = MjpgJpg;
-                            qWarning() << currentImageSize << "CI" << borderArray;
+                            m_mjpgState = MjpgJpg;
+                            qWarning() << m_currentImageSize << "CI" << borderArray;
                         } else {
                             qWarning() << QString("Could not convert %1 to number").arg(QString(borderArray.mid(5,7)));
                         }
@@ -138,15 +145,15 @@ void QImageGrabberMjpeg::replyDataAvailable()
                 } else {  // too few bytes came so return the next readyíread will take us further
                     return;
                 }
-            } else if(streamType == StreamTypeMjpgStreamer) {
+            } else if(m_streamType == StreamTypeMjpgStreamer) {
                 bool quitNext = false;
-                while(reply->canReadLine()) {
-                    QString cLine = reply->readLine();
+                while(m_reply->canReadLine()) {
+                    QString cLine = m_reply->readLine();
                     if (quitNext)
                         break;
                     if (cLine.startsWith("Content-Length:")) {
                         bool ok = false;
-                        currentImageSize = cLine.mid(16).toInt(&ok);
+                        m_currentImageSize = cLine.mid(16).toInt(&ok);
                         if (!ok) {
                             qWarning() << QString("Could not convert %1 to number").arg(cLine.mid(16));
                             return;
@@ -157,7 +164,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
                                     m_timestampRegexp.cap(1).toLong() * 1000 +
                                     m_timestampRegexp.cap(2).toLong();
                         }
-                        mjpgState = MjpgJpg;
+                        m_mjpgState = MjpgJpg;
                         quitNext = true;
                     }
                 }
@@ -165,9 +172,9 @@ void QImageGrabberMjpeg::replyDataAvailable()
         }
     }
 
-    if (mjpgState == MjpgJpg) {
-        imageBuffer->write(reply->read(currentImageSize - imageBuffer->pos()));
-        if (imageBuffer->pos() == currentImageSize) {
+    if (m_mjpgState == MjpgJpg) {
+        imageBuffer->write(m_reply->read(m_currentImageSize - imageBuffer->pos()));
+        if (imageBuffer->pos() == m_currentImageSize) {
             bool ok = false;
             imageReader->setDevice(imageBuffer);
             imageBuffer->seek(0);
@@ -180,7 +187,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
             } else {
                 qWarning() << "Image read fail" << imageReader->errorString();
             }
-            mjpgState = MjpgBoundary;
+            m_mjpgState = MjpgBoundary;
         }
     }
 }
@@ -189,9 +196,10 @@ void QImageGrabberMjpeg::setSource(QString str)
 {
     QUrl checkUrl(str);
     if (checkUrl.isValid()) {
-        currentUrl = checkUrl;
+        m_currentUrl = checkUrl;
     } else {
-        qWarning() << "invalid URL:" << str;
+        m_errorStr = tr("Invalid URL");
+        emit errorHappend();
     }
 }
 

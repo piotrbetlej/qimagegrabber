@@ -24,7 +24,7 @@ QImageGrabber::QImageGrabber(QObject *parent) :
 }
 
 void QImageGrabber::setError(QString str) {
-    errorStr = str;
+    m_errorStr = str;
     emit errorHappend();
     currentState = GrabbingError;
     emit stateChanged(GrabbingError);
