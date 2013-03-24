@@ -12,7 +12,7 @@ DialogFPSGraph::DialogFPSGraph(QWidget *parent) :
     ui->setupUi(this);
     ui->lineEditSaveFileName->setText(QDir::homePath()+"/fpslog.csv");
     ui->fpsPlot->setTitle("FPS");
-    ui->fpsPlot->setAxisScale(QwtPlot::yLeft, 0, 35);
+    ui->fpsPlot->setAxisAutoScale(QwtPlot::yLeft, true);
     ui->fpsPlot->setAutoReplot(true);
     fpsCurve.setTitle("FPS");
     avgCurve.setTitle("FPS avg");

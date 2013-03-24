@@ -1,28 +1,32 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QDebug>
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    currentGrabber(NULL)
+    currentImageGrabber(NULL)
 {
     ui->setupUi(this);
+    settings = new QSettings("settings.ini", QSettings::IniFormat, this);
 
     mjpgGrabber = new QImageGrabberMjpeg(this);
     imageGrabbers.append(mjpgGrabber);
 
+
     httpGrabber = new QImageGrabberHttp(this);
     imageGrabbers.append(httpGrabber);
 
-    foreach (QImageGrabber *currentGrabber, imageGrabbers) {
-        ui->comboBoxGrabberTypes->addItem(currentGrabber->grabberName());
+    loadSettings();
+
+    foreach (QImageGrabber *imageGrabber, imageGrabbers) {
+        ui->comboBoxGrabberTypes->addItem(imageGrabber->grabberName());
     }
 
     connect(&fpsDialog, SIGNAL(finished(int)), this, SLOT(fpsDialogFinished(int)));
 
-    setImageGrabber(httpGrabber);
+    setImageGrabber(mjpgGrabber);
 
-    settings = new QSettings("settings.ini", QSettings::IniFormat, this);
     settings->beginGroup("network");
     serverSocket = new QTcpSocket(this);
     connect(serverSocket, SIGNAL(readyRead()), this ,SLOT(serverDataAvailable()));
@@ -38,27 +42,20 @@ MainWindow::MainWindow(QWidget *parent) :
     settings->endGroup();
 
     compareSettingsDialog = new DialogCompareSettings(this);
+
+    colorChangeTimer = new QTimer(this);
+    connect(colorChangeTimer, SIGNAL(timeout()), this, SLOT(delayTestPhaseChangedSlot()));
 }
 
 MainWindow::~MainWindow()
 {
+    on_actionSave_settings_triggered();
     delete ui;
 }
-
-void MainWindow::on_pushButtonSettings_clicked()
-{
-    settingsDialog.show();
-}
-
 
 void MainWindow::newImageReceieved(QImage *img)
 {
     ui->graphicsViewImage->newImageReceieved(img);
-}
-
-void MainWindow::on_actionFPSDiagram_toggled(bool on)
-{
-    fpsDialog.setVisible(on);
 }
 
 void MainWindow::newFPSCalculated(double fps, double avg)
@@ -74,28 +71,23 @@ void MainWindow::fpsDialogFinished(int)
     ui->actionFPSDiagram->setChecked(false);
 }
 
-void MainWindow::on_comboBoxGrabberTypes_activated(int index)
-{
-    setImageGrabber(imageGrabbers.at(index));
-}
-
 void MainWindow::serverDataAvailable()
 {
     while (serverSocket->canReadLine()) {
         QString cLine = serverSocket->readLine();
         if (cLine.startsWith("SOURCE=")) {
-            currentGrabber->setSource(cLine.trimmed().mid(7));
+            currentImageGrabber->setSource(cLine.trimmed().mid(7));
             qWarning() << cLine.trimmed().mid(7);
         } else if (cLine.startsWith("START")) {
             fpsDialog.start();
-            currentGrabber->startGrabbing();
+            currentImageGrabber->startGrabbing();
         } else if (cLine.startsWith("SELECT=")) {
             int index = cLine.trimmed().mid(7).toInt();
             if (index < imageGrabbers.size()) {
                 setImageGrabber(imageGrabbers.at(index));
             }
         } else if (cLine.startsWith("STOP")) {
-            currentGrabber->stopGrabbing();
+            currentImageGrabber->stopGrabbing();
         } else if (cLine.startsWith("POLL")) {
             serverSocket->write("ACK\n");
             ui->labelBlink->setStyleSheet("background-color: red;");
@@ -125,28 +117,82 @@ void MainWindow::socketStateChanged(QAbstractSocket::SocketState newState)
     }
 }
 
-void MainWindow::setImageGrabber(QImageGrabber *gb)
+void MainWindow::setImageGrabber(QImageGrabber *newGrabberb)
 {
     disconnect(this, SLOT(newImageReceieved(QImage*)));
     disconnect(this, SLOT(newFPSCalculated(double,double)));
 
-    if (currentGrabber != NULL) {
-        currentGrabber->stopGrabbing();
+    if (currentImageGrabber != NULL) {
+        currentImageGrabber->stopGrabbing();
     }
-    currentGrabber = gb;
-    settingsDialog.setImageGrabber(currentGrabber);
-    connect(currentGrabber, SIGNAL(newImageGrabbed(QImage*)),this, SLOT(newImageReceieved(QImage*)));
-    connect(currentGrabber, SIGNAL(newFPSCalculated(double,double)), this, SLOT(newFPSCalculated(double,double)));
+
+    currentImageGrabber = newGrabberb;
+
+    settingsDialog.setImageGrabber(currentImageGrabber);
+    connect(currentImageGrabber, SIGNAL(newImageGrabbed(QImage*)),this, SLOT(newImageReceieved(QImage*)));
+    connect(currentImageGrabber, SIGNAL(newFPSCalculated(double,double)), this, SLOT(newFPSCalculated(double,double)));
 
     int i = 0;
-    foreach(QImageGrabber *cgb, imageGrabbers) {
-        if (cgb == currentGrabber) {
+    foreach(QImageGrabber *imageGrabber, imageGrabbers) {
+        if (imageGrabber == currentImageGrabber) {
             break;
         }
         i++;
     }
+
     if (ui->comboBoxGrabberTypes->currentIndex() != i)
         ui->comboBoxGrabberTypes->setCurrentIndex(i);
+}
+
+void MainWindow::loadSettings()
+{
+    settings->beginGroup("httpGrabber");
+    httpGrabber->loadSettings(settings);
+    settings->endGroup();
+
+    settings->beginGroup("mjpgGrabber");
+    mjpgGrabber->loadSettings(settings);
+    settings->endGroup();
+}
+
+void MainWindow::blinkOut()
+{
+    ui->labelBlink->setStyleSheet("");
+}
+
+void MainWindow::delayTestPhaseChangedSlot()
+{
+    switch (delayTestPhase) {
+    case ScreenRed:
+        break;
+    case ScreenBlue:
+        break;
+    case Idle:
+        break;
+    }
+    colorDialog.close();
+}
+
+void MainWindow::on_pushButtonSettings_clicked()
+{
+    settingsDialog.show();
+}
+
+void MainWindow::on_comboBoxGrabberTypes_activated(int index)
+{
+    setImageGrabber(imageGrabbers.at(index));
+}
+
+void MainWindow::on_actionFPSDiagram_toggled(bool on)
+{
+    fpsDialog.setVisible(on);
+}
+
+void MainWindow::on_checkBoxAutoConnect_toggled(bool checked)
+{
+    settings->beginGroup("network");
+    settings->setValue("autoconnect", checked);
+    settings->endGroup();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -161,17 +207,6 @@ void MainWindow::on_pushButton_clicked()
     settings->endGroup();
 }
 
-void MainWindow::on_checkBoxAutoConnect_toggled(bool checked)
-{
-    settings->beginGroup("network");
-    settings->setValue("autoconnect", checked);
-    settings->endGroup();
-}
-
-void MainWindow::blinkOut()
-{
-    ui->labelBlink->setStyleSheet("");
-}
 
 void MainWindow::on_actionHelp_triggered()
 {
@@ -180,7 +215,7 @@ void MainWindow::on_actionHelp_triggered()
 
 void MainWindow::on_pushButtonStart_clicked()
 {
-    currentGrabber->startGrabbing();
+    currentImageGrabber->startGrabbing();
     ui->graphicsViewImage->grabbingStarted();
 }
 
@@ -191,12 +226,14 @@ void MainWindow::on_actionSelect_measurement_point_triggered()
 
 void MainWindow::on_actionTest_red_triggered()
 {
-
+    colorChangeTimer->start(1000);
+    colorDialog.showColor("red");
 }
 
 void MainWindow::on_actionTest_blue_triggered()
 {
-
+    colorChangeTimer->start(1000);
+    colorDialog.showColor("blue");
 }
 
 void MainWindow::on_actionMeasure_delay_triggered()
@@ -208,3 +245,15 @@ void MainWindow::on_actionCompareSettings_triggered()
 {
     compareSettingsDialog->show();
 }
+
+void MainWindow::on_actionSave_settings_triggered()
+{
+    settings->beginGroup("httpGrabber");
+    httpGrabber->saveSettings(settings);
+    settings->endGroup();
+
+    settings->beginGroup("mjpgGrabber");
+    mjpgGrabber->saveSettings(settings);
+    settings->endGroup();
+}
+
