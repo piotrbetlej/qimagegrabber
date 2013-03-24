@@ -9,8 +9,9 @@
 #include <qimagegrabberhttp.h>
 #include <qimagegrabbermjpeg.h>
 #include <dialogqimagegrabbersettings.h>
-#include <dialogcomparesettings.h>
 
+#include "dialogcolor.h"
+#include "dialogcomparesettings.h"
 #include "dialogfpsgraph.h"
 #include "dialogdelaymeasurehelp.h"
 
@@ -27,11 +28,18 @@ public:
     ~MainWindow();
 
 private:
+
+    enum DelayTestPhases {
+        ScreenRed,
+        ScreenBlue,
+        Idle
+    };
+
     Ui::MainWindow *ui;
     QImageGrabberHttp *httpGrabber;
     QImageGrabberMjpeg *mjpgGrabber;
     QList<QImageGrabber *> imageGrabbers;
-    QImageGrabber *currentGrabber;
+    QImageGrabber *currentImageGrabber;
     DialogQImageGrabberSettings settingsDialog;
     DialogDelayMeasureHelp delayHelpDialog;
     DialogFPSGraph fpsDialog;
@@ -41,7 +49,14 @@ private:
 
     DialogCompareSettings *compareSettingsDialog;
 
-    void setImageGrabber(QImageGrabber *gb);
+
+    QTimer *colorChangeTimer;
+    DelayTestPhases delayTestPhase;
+    DialogColor colorDialog;
+
+    void setImageGrabber(QImageGrabber *newGrabberb);
+
+    void loadSettings();
 
 private slots:
     void on_checkBoxAutoConnect_toggled(bool checked);
@@ -62,6 +77,8 @@ private slots:
     void on_actionTest_blue_triggered();
     void on_actionMeasure_delay_triggered();
     void on_actionCompareSettings_triggered();
+    void on_actionSave_settings_triggered();
+    void delayTestPhaseChangedSlot();
 };
 
 #endif // MAINWINDOW_H

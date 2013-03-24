@@ -26,16 +26,21 @@ SOURCES += main.cpp\
     dialogdelaymeasurehelp.cpp \
     dialogcomparesettings.cpp \
     imageview.cpp \
-    imageitem.cpp
+    imageitem.cpp \
+    dialogcolor.cpp \
+    colordetector.cpp
 
 HEADERS  += mainwindow.h \
     dialogfpsgraph.h \
     dialogdelaymeasurehelp.h \
     dialogcomparesettings.h \
     imageview.h \
-    imageitem.h
+    imageitem.h \
+    dialogcolor.h \
+    colordetector.h
 
 FORMS    += mainwindow.ui \
     dialogfpsgraph.ui \
     dialogdelaymeasurehelp.ui \
-    dialogcomparesettings.ui
+    dialogcomparesettings.ui \
+    dialogcolor.ui
