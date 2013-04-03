@@ -21,7 +21,9 @@ void DialogQImageGrabberSettings::setImageGrabber(QImageGrabber *gb)
     grabber = gb;
     connect(gb, SIGNAL(errorHappend()), this, SLOT(grabberErrorHappend()));
     this->setWindowTitle(gb->grabberName());
+
     ui->lineEditSource->setText(grabber->currentSource());
+
     ui->spinBoxFPS->setValue(grabber->getFps());
 
     if (grabber->getFps() == 0) {
@@ -136,7 +138,7 @@ void DialogQImageGrabberSettings::grabberErrorHappend()
 void DialogQImageGrabberSettings::on_pushButtonMore_clicked()
 {
     ui->pushButtonMore->setText(
-            ui->groupBoxProperties->isVisible()?"More":"Hide details");
+    ui->groupBoxProperties->isVisible()?"More":"Hide details");
     ui->groupBoxProperties->setVisible(!ui->groupBoxProperties->isVisible());
     adjustSize();
 }

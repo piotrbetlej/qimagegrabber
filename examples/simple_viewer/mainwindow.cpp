@@ -14,8 +14,15 @@ MainWindow::MainWindow(QWidget *parent) :
 
     mjpgGrabber = new QImageGrabberMjpeg(this);
     imageGrabbers.append(mjpgGrabber);
+    settings.beginGroup("mjpgGrabber");
+    mjpgGrabber->setSource(settings.value("url", "http://127.0.0.1:8080/?action=stream").toString());
+    settings.endGroup();
 
+    settings.beginGroup("httpGrabber");
     httpGrabber = new QImageGrabberHttp(this);
+    httpGrabber->setSource(settings.value("url", "http://127.0.0.1:8080/?action=snapshot").toString());
+    settings.endGroup();
+
     imageGrabbers.append(httpGrabber);
 
     foreach (QImageGrabber *currentGrabber, imageGrabbers) {
@@ -27,6 +34,14 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
+    settings.beginGroup("mjpgGrabber");
+    settings.setValue("url", mjpgGrabber->currentSource());
+    settings.endGroup();
+
+    settings.beginGroup("httpGrabber");
+    settings.setValue("url", httpGrabber->currentSource());
+    settings.endGroup();
+
     delete ui;
 }
 
