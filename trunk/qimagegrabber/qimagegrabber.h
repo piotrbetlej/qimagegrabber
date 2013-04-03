@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QTime>
 #include <QVariant>
+#include <QSettings>
 
 #include "qimagegrabber_global.h"
 #define FPS_ARRAY_SIZE 50
@@ -77,6 +78,9 @@ public:
     virtual QStringList enumerateSources() = 0;
 
     virtual QString getDefaultSource() = 0;
+
+    void saveSettings(QSettings *settings);
+    void loadSettings(QSettings *settings);
 
 protected:
     QString m_errorStr;

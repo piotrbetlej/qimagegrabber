@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     QApplication::setOrganizationName("MM");
-    QApplication::setApplicationName("QImageGrabber benchmark");
+    QApplication::setApplicationName("Simple Viewer");
     QApplication::setApplicationVersion("1.0");
 
     MainWindow w;

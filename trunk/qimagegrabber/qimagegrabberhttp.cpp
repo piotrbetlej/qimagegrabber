@@ -18,7 +18,7 @@ void QImageGrabberHttp::init()
     downloadManager = new QNetworkAccessManager(this);
     connect(downloadManager, SIGNAL(finished(QNetworkReply*)), this, SLOT(downloadFinished(QNetworkReply*)));
     request = new QNetworkRequest();
-    request->setRawHeader("User-Agent", "Mars2020 getimage LIB");
+    request->setRawHeader("User-Agent", "QImageGrabber");
     reply = NULL;
     setUrl(currentUrl);
 }

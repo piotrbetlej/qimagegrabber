@@ -48,3 +48,23 @@ void QImageGrabber::calcFPS(quint16 newDelay)
     }
 }
 
+
+void QImageGrabber::saveSettings(QSettings *settings)
+{
+    settings->setValue("source", currentSource());
+    settings->beginGroup("parameters");
+    foreach (QImageGrabberParameter param, getParameterList()) {
+        settings->setValue(param.name, param.value);
+    }
+    settings->endGroup(); // params
+}
+
+void QImageGrabber::loadSettings(QSettings *settings)
+{
+    setSource(settings->value("source").toString());
+    settings->beginGroup("parameters");
+    foreach (QImageGrabberParameter param, getParameterList()) {
+        param.value = settings->value(param.name, "");
+    }
+    settings->endGroup(); // params
+}
