@@ -97,7 +97,7 @@ void MainWindow::serverDataAvailable()
             for (qlonglong i = 0; i<fpsDialog.getCnt(); i++) {
                 serverSocket->write(QString("%1;%2;\n")
                                     .arg(fpsDialog.getTimeBuffer()->at(i))
-                                    .arg(fpsDialog.getFpsBuffer()->at(i)).toAscii());
+                                    .arg(fpsDialog.getFpsBuffer()->at(i)).toLocal8Bit());
             }
             serverSocket->write("ENDDUMP\n");
             qWarning() << "ENDDUMP";
@@ -111,9 +111,9 @@ void MainWindow::serverDataAvailable()
 void MainWindow::socketStateChanged(QAbstractSocket::SocketState newState)
 {
     if (newState == QAbstractSocket::ConnectedState) {
-        ui->labelSocketStatus->setText("Connected");
+        ui->labelSocketStatus->setText(tr("Connected"));
     } else {
-        ui->labelSocketStatus->setText("Disconnected");
+        ui->labelSocketStatus->setText(tr("Disconnected"));
     }
 }
 

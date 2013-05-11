@@ -7,6 +7,9 @@
 
 QT       += network gui
 
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+
+
 TARGET = qimagegrabber
 TEMPLATE = lib
 OBJECTS_DIR = build
