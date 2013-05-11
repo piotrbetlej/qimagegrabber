@@ -48,7 +48,7 @@ void DialogFPSGraph::on_pushButtonSave_clicked()
         for (int i = 0; i<timeBuffer.size(); i++) {
             file.write(QString("%1; %2;\n")
                        .arg(timeBuffer[i])
-                       .arg(fpsBuffer[i]).toAscii());
+                       .arg(fpsBuffer[i]).toLocal8Bit());
         }
         file.close();
     }
