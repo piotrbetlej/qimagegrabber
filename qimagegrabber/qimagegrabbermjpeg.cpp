@@ -158,6 +158,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             qWarning() << QString("Could not convert %1 to number").arg(cLine.mid(16));
                             return;
                         }
+                        m_mjpgState = MjpgJpg;
                     } else if (cLine.startsWith("X-Timestamp:")) {
                         if (m_timestampRegexp.indexIn(cLine) > -1) {
                             m_timestampInMs =
