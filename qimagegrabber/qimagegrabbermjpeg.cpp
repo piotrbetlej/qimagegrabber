@@ -159,6 +159,8 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             return;
                         }
                         m_mjpgState = MjpgJpg;
+                        // Read /r/n sent after Content-Length line
+                        m_reply->read(2);
                         break;
                     } else if (cLine.startsWith("X-Timestamp:")) {
                         if (m_timestampRegexp.indexIn(cLine) > -1) {
@@ -189,6 +191,9 @@ void QImageGrabberMjpeg::replyDataAvailable()
             } else {
                 qWarning() << "Image read fail" << imageReader->errorString();
             }
+
+            // Read /r/n sent after binary content
+            m_reply->read(2);
             m_mjpgState = MjpgBoundary;
         }
     }
