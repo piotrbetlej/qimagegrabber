@@ -159,6 +159,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             return;
                         }
                         m_mjpgState = MjpgJpg;
+                        break;
                     } else if (cLine.startsWith("X-Timestamp:")) {
                         if (m_timestampRegexp.indexIn(cLine) > -1) {
                             m_timestampInMs =
