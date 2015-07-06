@@ -59,6 +59,8 @@ private:
     quint64 m_timestampInMs;
     QRegExp m_timestampRegexp;
 
+    bool got_separator = false;
+
 public slots:
 
 private slots:

@@ -158,10 +158,10 @@ void QImageGrabberMjpeg::replyDataAvailable()
                             qWarning() << QString("Could not convert %1 to number").arg(cLine.mid(16));
                             return;
                         }
+
                         m_mjpgState = MjpgJpg;
-                        // Read /r/n sent after Content-Length line
-                        m_reply->read(2);
                         break;
+
                     } else if (cLine.startsWith("X-Timestamp:")) {
                         if (m_timestampRegexp.indexIn(cLine) > -1) {
                             m_timestampInMs =
@@ -176,8 +176,32 @@ void QImageGrabberMjpeg::replyDataAvailable()
         }
     }
 
+    // This part is a continuation
     if (m_mjpgState == MjpgJpg) {
-        imageBuffer->write(m_reply->read(m_currentImageSize - imageBuffer->pos()));
+
+        QByteArray a;
+
+        // Do not read separator again if entered this function after empty buffer read
+        if (!got_separator)
+        {
+            a = m_reply->read(2);
+
+            if (!((((*a.data()) & 0xFF) == 0x0d) && (((*(a.data()+sizeof(char)) & 0xFF)) == 0x0a)))
+                return;
+
+            got_separator = true;
+        }
+
+        // Try read data only after separator received
+        QByteArray arr = m_reply->read(m_currentImageSize - imageBuffer->pos());
+
+        if (arr.size() != m_currentImageSize)
+            // Needed in case 0x0D0A read, but no further content in buffer - re-enter
+            // this code to read it after readReady() signal fired and buffer is containing JPEG data now
+            return;
+
+        imageBuffer->write(arr);
+
         if (imageBuffer->pos() == m_currentImageSize) {
             bool ok = false;
             imageReader->setDevice(imageBuffer);
@@ -195,6 +219,7 @@ void QImageGrabberMjpeg::replyDataAvailable()
             // Read /r/n sent after binary content
             m_reply->read(2);
             m_mjpgState = MjpgBoundary;
+            got_separator = false;
         }
     }
 }
