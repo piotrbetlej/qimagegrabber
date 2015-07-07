@@ -195,11 +195,6 @@ void QImageGrabberMjpeg::replyDataAvailable()
         // Try read data only after separator received
         QByteArray arr = m_reply->read(m_currentImageSize - imageBuffer->pos());
 
-        if (arr.size() != m_currentImageSize)
-            // Needed in case 0x0D0A read, but no further content in buffer - re-enter
-            // this code to read it after readReady() signal fired and buffer is containing JPEG data now
-            return;
-
         imageBuffer->write(arr);
 
         if (imageBuffer->pos() == m_currentImageSize) {
