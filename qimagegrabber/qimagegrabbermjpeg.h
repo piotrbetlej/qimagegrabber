@@ -8,7 +8,7 @@
 #include <QtNetwork/QNetworkRequest>
 #include <QtNetwork/QNetworkReply>
 #include <QRegExp>
-
+#include <QMutex>
 
 class QImageGrabber;
 
@@ -60,6 +60,7 @@ private:
     QRegExp m_timestampRegexp;
 
     bool got_separator = false;
+    QMutex m;
 
 public slots:
 

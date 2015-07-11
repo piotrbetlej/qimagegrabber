@@ -1,6 +1,5 @@
 #include "qimagegrabbermjpeg.h"
 
-
 QImageGrabberMjpeg::QImageGrabberMjpeg(QObject *parent)
     : QImageGrabber(parent)
 {
@@ -9,7 +8,6 @@ QImageGrabberMjpeg::QImageGrabberMjpeg(QObject *parent)
     m_request = new QNetworkRequest();
     m_request->setRawHeader("User-Agent", "Mars2020 Imagegrabber LIB");
     m_reply = NULL;
-
     QImageGrabberParameter boundaryParam;
     boundaryParam.name = tr("Boundary");
     boundaryParam.value = "boundarydonotcross";
@@ -49,9 +47,11 @@ void QImageGrabberMjpeg::stopGrabbing()
 {
     currentState = GrabbingOff;
     emit stateChanged(GrabbingOff);
-    if (m_reply != NULL) {
+
+    if (m.tryLock() && m_reply != NULL) {
         m_reply->abort();
     }
+    m.unlock();
 }
 
 
@@ -66,20 +66,36 @@ void QImageGrabberMjpeg::downloadFinished(QNetworkReply *reply)
 
 void QImageGrabberMjpeg::downloadErrorSlot(QNetworkReply::NetworkError )
 {
-    if (m_reply != NULL) {
+
+    if (m.tryLock() && m_reply != NULL) {
         m_errorStr = m_reply->errorString();
+        m.unlock();
         emit errorHappend();
     }
+
 }
 
 bool QImageGrabberMjpeg::sendRequest()
 {
     if (m_currentUrl.isValid()) {
+
+        m.lock();
+        if (m_request != NULL) {
+            delete m_request;
+
+            if (m_reply != NULL)
+                delete m_reply;
+            m_request = new QNetworkRequest();
+            m_request->setRawHeader("User-Agent", "Mars2020 Imagegrabber LIB");
+        }
+
         m_request->setUrl(m_currentUrl);
 
         m_reply = m_downloadManager->get(*m_request);
         connect(m_reply , SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(downloadErrorSlot(QNetworkReply::NetworkError)));
         connect(m_reply, SIGNAL(readyRead()), this, SLOT(replyDataAvailable()));
+
+        m.unlock();
 
         m_mjpgState = MjpgBoundary;
         m_streamType = StreamTypeUnknown;
